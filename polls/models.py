@@ -138,3 +138,10 @@ class Mietzinseingaenge(models.Model):
 
     def __str__(self):
         return str(self.mieter)+' '+str(self.betrag)+' '+str(self.datum)
+
+
+class MietzinseingaengeSummary(Mietzinseingaenge):
+    class Meta:
+        proxy = True
+        verbose_name = 'Mieteinnahmen'
+        verbose_name_plural = 'Mieteingänge'

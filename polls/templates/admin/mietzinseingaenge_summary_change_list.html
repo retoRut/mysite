@@ -1,0 +1,121 @@
+{% extends "admin/change_list.html" %}
+
+{% block content_title %}
+    <h1> Mietzinseingänge Statistik </h1>
+{% endblock %}
+
+{% block result_list %}
+    <!-- Our content goes here... -->
+    <div class="results">
+    <table>
+
+    <thead>
+      <tr>
+        <th>
+          <div class="text">
+            <a href="#">Category</a>
+          </div>
+        </th>
+        <th>
+          <div class="text">
+            <a href="#">Total</a>
+          </div>
+        </th>
+        <th>
+          <div class="text">
+            <a href="#">Total Sales</a>
+          </div>
+        </th>
+        <th>
+          <div class="text">
+            <a href="#">
+              <strong>% Of Total Sales</strong>
+            </a>
+          </div>
+        </th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for row in summary %}
+      <tr class="{% cycle 'row1' 'row2' %}">
+        <td> {{ row.mieter__betrag__datum }} </td>
+        <td> {{ row.total  }} </td>
+        <td> {{ row.total_betrag | default:0  }}$ </td>
+        <td>
+          <strong>
+          {{ row.total_betrag | default:0  }}
+          </strong>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+
+  </table>
+</div>
+
+<!-- ... -->
+
+    <div class="results">
+
+    <!-- ... -->
+
+    <h2> Sales over time </h2>
+
+    <style>
+    .bar-chart {
+      display: flex;
+      justify-content: space-around;
+      height: 160px;
+      padding-top: 60px;
+      overflow: hidden;
+    }
+    .bar-chart .bar {
+        flex: 100%;
+        align-self: flex-end;
+        margin-right: 2px;
+        position: relative;
+        background-color: #79aec8;
+    }
+    .bar-chart .bar:last-child {
+        margin: 0;
+    }
+    .bar-chart .bar:hover {
+        background-color: #417690;
+    }
+
+    .bar-chart .bar .bar-tooltip {
+        position: relative;
+        z-index: 999;
+    }
+    .bar-chart .bar .bar-tooltip {
+        position: absolute;
+        top: -60px;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+        font-weight: bold;
+        opacity: 0;
+    }
+    .bar-chart .bar:hover .bar-tooltip {
+        opacity: 1;
+    }
+    </style>
+
+    <div class="results">
+        <div class="bar-chart">
+        {% for x in summary_over_time %}
+            <div class="bar" style="height:{{x.pct}}%">
+                <div class="bar-tooltip">
+                    {{x.total | default:0 }}<br>
+                    {{x.period | date:"d/m/Y"}}
+                </div>
+            </div>
+        {% endfor %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block pagination %}{% endblock %}
