@@ -12,7 +12,7 @@ from django.http import JsonResponse
 from django.urls import path
 
 from .models import Question, Mieter, Mietobjekt, Nebenkosten, Nebenkosten_Typ, Kosten, Mietzinseingaenge, \
-    Mietzins, Year, MietzinseingaengeSummary
+    Mietzins, Year, MietzinseingaengeSummary, Unterhalt, MietobjektSummary
 
 admin.site.register(Question)
 
@@ -42,6 +42,12 @@ class NebenkostenAdmin(admin.ModelAdmin):
 class MietzinsAdmin(admin.ModelAdmin):
     list_display = [field.name for field in Mietzins._meta.fields]
 
+
+@admin.register(Unterhalt)
+class UnterhaltAdmin(admin.ModelAdmin):
+    list_display = [field.name for field in Unterhalt._meta.fields]
+
+
 # admin.site.register(Nebenkosten_Typ)
 admin.site.register(Kosten)
 # admin.site.register(Month)
@@ -57,6 +63,7 @@ class MietzinseingaengeAdmin(admin.ModelAdmin):
             kwargs["queryset"] = Nebenkosten.objects.filter(aktiv=True).filter(mieter=7)
         return super(MietzinseingaengeAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
+    '''
     def changelist_view(self, request, extra_context=None):
         # Aggregate new subscribers per day
         chart_data = (
@@ -66,16 +73,16 @@ class MietzinseingaengeAdmin(admin.ModelAdmin):
                 .order_by("-mieter")
         )
         # datum , -date
-
+        
         # Serialize and attach the chart data to the template context
         as_json = json.dumps(list(chart_data), cls=DjangoJSONEncoder)
         extra_context = extra_context or {"chart_data": as_json}
 
         # Call the superclass changelist_view to render the page
         return super().changelist_view(request, extra_context=extra_context)
+          '''
 
-
-    # new code ---
+    '''   
     def get_urls(self):
         urls = super().get_urls()
         extra_urls = [
@@ -98,6 +105,14 @@ class MietzinseingaengeAdmin(admin.ModelAdmin):
             .annotate(y=Count("id"))
             .order_by("-date")
         )
+'''
+
+
+
+
+
+
+
     # datum
  #   list_filter = (("mieter", RelatedDropdownFilter),)
  #   def get_form(self, request, obj=None, **kwargs):
@@ -126,14 +141,64 @@ class MietzinseingaengeSummaryAdmin(admin.ModelAdmin):
         except (AttributeError, KeyError):
             return response
 
+        metrics = {'total_month': Count('month'),
+                   'total_betrag': Sum('betrag'),
+        }
+        # print('qs: '+str(qs))
+        response.context_data['summary'] = list(qs.values('mieter__first_name')
+                                                   .annotate(**metrics)
+                                                .order_by('-total_betrag'))
+
+        # Total berechnen
+        response.context_data['summary_total'] = dict(qs.aggregate(**metrics) )
+
+        return response
+        # -----
+    '''    summary_over_time = qs.annotate( period=Trunc('mieter','betrag',
+                output_field=DateTimeField(),),
+        ).values('period').annotate(total=Sum('price')).order_by('period')
+
+        summary_range = summary_over_time.aggregate(low=Min('total'),high=Max('total'),)
+        high = summary_range.get('high', 0)
+        low = summary_range.get('low', 0)
+
+        response.context_data['summary_over_time'] = [{
+            'period': x['period'],
+            'total': x['total'] or 0,
+            'pct': ((x['total'] or 0) - low) / (high - low) * 100
+               if high > low else 0,
+        } for x in summary_over_time]
+'''
+
+
+@admin.register(MietobjektSummary)
+class MietobjektSummaryAdmin(admin.ModelAdmin):
+    change_list_template = 'admin/mietobjekt_summary_change_list.html'
+    # date_hierarchy = 'building' # muss immer ein datum sein
+
+    list_filter = (
+        'name',
+    )
+
+    def changelist_view(self, request, extra_context=None):
+        response = super().changelist_view(
+            request,
+            extra_context=extra_context,
+        )
+
+        try:
+            qs = response.context_data['cl'].queryset
+        except (AttributeError, KeyError):
+            return response
+
         metrics = {
-            'total': Count('id'),
-            'total_betrag': Sum('betrag'),
+            'total_rent': Count('id'),
+            'total_betrag': Sum('betrag'),  # von Tabelle Unterhalt
         }
         print('qs: '+str(qs))
         response.context_data['summary'] = list(
             qs
-            .values('mieter','betrag','datum')
+            .values('name','betrag','datum')
             .annotate(**metrics)
             .order_by('-total_betrag')
         )

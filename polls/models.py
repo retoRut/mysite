@@ -26,6 +26,11 @@ class Choice(models.Model):
 
 class Mietobjekt(models.Model):
     name = description = models.CharField(verbose_name="Objektname",max_length=200, default=0)
+    building =  models.CharField(default = 0, max_length=10, choices=(('H1', 'H1',),
+                                                                        ('H3', 'H3'),
+                                                                      ('H3A', 'H3A'),
+                                                                      ('H5', 'H5'),
+                                                                      ('H5A', 'H5A')))
     # mietzins = models.ManyToManyField(Mietzinse)
     #description = models.CharField(verbose_name="Beschreibung",max_length=1000)
     description = models.TextField(verbose_name="Beschreibung", max_length=1024 * 2)
@@ -34,6 +39,12 @@ class Mietobjekt(models.Model):
 
     def __str__(self):
         return self.description
+
+class MietobjektSummary(Mietobjekt):
+    class Meta:
+        proxy = True
+        #verbose_name = 'Mieteinnahmen'
+        #verbose_name_plural = 'Mieteingänge'
 
 
 class Mietzins(models.Model):
@@ -103,9 +114,6 @@ class Mieter(models.Model):
                                                     m_zins)
 
 
-
-
-
 class Kosten(models.Model):
     mieter = models.ForeignKey(Mieter, on_delete=models.CASCADE)
     miete = models.ForeignKey(Mietobjekt, on_delete=models.CASCADE)
@@ -114,6 +122,14 @@ class Kosten(models.Model):
     def __str__(self):
         return str(self.mieter)+' '+str(self.miete)+' '+str(self.nebenkosten)
 
+
+class Unterhalt(models.Model):
+    mietobjekt = models.ForeignKey(Mietobjekt, on_delete=models.CASCADE)
+    description = models.CharField(verbose_name="Beschreibung",max_length=200)
+    betrag = models.IntegerField(default=0)
+
+    def __str__(self):
+        return str(self.mietobjekt)+' '+str(self.description)+' '+str(self.betrag)
 
 
 class Mietzinseingaenge(models.Model):

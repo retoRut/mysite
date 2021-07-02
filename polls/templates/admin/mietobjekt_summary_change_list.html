@@ -1,8 +1,7 @@
 {% extends "admin/change_list.html" %}
 
-
 {% block content_title %}
-    <h1> Mietzinseingänge Statistik </h1>
+    <h1> Mietobjekte Statistik </h1>
 {% endblock %}
 
 {% block result_list %}
@@ -14,24 +13,17 @@
       <tr>
         <th>
           <div class="text">
-            <a href="#">Mieter</a>
+            <a href="#">Object</a>
           </div>
         </th>
         <th>
           <div class="text">
-            <a href="#">bezahlte Monate</a>
+            <a href="#">Invest</a>
           </div>
         </th>
         <th>
           <div class="text">
-            <a href="#">total Betrag</a>
-          </div>
-        </th>
-        <th>
-          <div class="text">
-            <a href="#">
-              <strong>% Of Total Sales</strong>
-            </a>
+            <a href="#">Mieteinnahmen</a>
           </div>
         </th>
       </tr>
@@ -40,22 +32,17 @@
     <tbody>
       {% for row in summary %}
       <tr class="{% cycle 'row1' 'row2' %}">
-          <td> {{ row.mieter__first_name  }} </td>
-          <td> {{ row.total_month          }} </td>
+        <td> {{ row.mieter__betrag__datum }} </td>
+        <td> {{ row.total  }} </td>
+        <td> {{ row.total_betrag | default:0  }}$ </td>
         <td>
           <strong>
-              {{ row.total_betrag | default:0  }}
+          {{ row.total_betrag | default:0  }}
           </strong>
         </td>
       </tr>
       {% endfor %}
     </tbody>
-            <tr style="font-weight:bold; border-top:2px solid #DDDDDD;">
-            <td> Total </td>
-            <td> {{ summary_total.total_month  }} </td>
-            <td> {{ summary_total.total_betrag | default:0 }}$ </td>
-            <td> 100% </td>
-        </tr>
 
   </table>
 </div>
