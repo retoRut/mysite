@@ -13,47 +13,30 @@ document.addEventListener('DOMContentLoaded', () => {
   const chartData = {{ chart_data | safe }};
 
   // Parse the dates to JS
-  chartData.forEach((d) => {
-    d.x = new Date(d.date);
-  });
-
-  // Render the chart
-  const chart = new Chart(ctx, {
-    type: 'bar',
+ // chartData.forEach((d) => {
+//    d.x = new Date(d.date);
+//  });
+const chart = new Chart(ctx, {
+    type: 'line',
     data: {
-      datasets: [
-        {
-          label: 'Mietzinseingänge',
-          data: chartData,
-          backgroundColor: 'rgba(220,20,20,0.5)',
-        },
-      ],
+        datasets: [{
+            label: 'Mietzinseinnahmen',
+            data: chartData
+        }],
+        labels: ['Januar', 'Februar', 'März', 'April','Mai','Juni']
     },
     options: {
-      responsive: true,
-      scales: {
-        xAxes: [
-          {
-            type: 'time',
-            time: {
-              unit: 'day',
-              round: 'day',
-              displayFormats: {
-                day: 'MMM D',
-              },
-            },
-          },
-        ],
-        yAxes: [
-          {
-            ticks: {
-              beginAtZero: true,
-            },
-          },
-        ],
-      },
-    },
-  });
+        scales: {
+            y: {
+                suggestedMin: 0,
+                suggestedMax: 100000
+            }
+        }
+    }
+    });
+
+  // Render the chart
+
 });
 </script>
 {% endblock %}

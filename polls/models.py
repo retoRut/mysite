@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 
 from django.contrib import admin
 from django.db import models
@@ -35,7 +35,7 @@ class Mietobjekt(models.Model):
     #description = models.CharField(verbose_name="Beschreibung",max_length=1000)
     description = models.TextField(verbose_name="Beschreibung", max_length=1024 * 2)
     # rent = models.DecimalField(max_digits=6, decimal_places=2)
-    photo = models.ImageField(verbose_name="Bild", default=0)
+    photo = models.ImageField(verbose_name="Bild", default=0, blank = True)
 
     def __str__(self):
         return self.description
@@ -136,24 +136,24 @@ class Mietzinseingaenge(models.Model):
     datum = models.DateField(default=datetime.now())
     # ,input_formats=["%Y-%m-%d", ]
     month = models.CharField(max_length=10, choices=(('JA', 'Januar',),
-                                         ('FE', 'Februar'),
-                                         ('MA', 'März'),
-                                         ('AP', 'April'),
-                                         ('MA', 'Mai'),
-                                         ('JN', 'Juni'),
-                                         ('JU', 'Juli'),
-                                         ('AU', 'August'),
-                                         ('SE', 'September'),
-                                         ('OK', 'Oktober'),
-                                         ('NO', 'November'),
-                                         ('DE', 'Dezember'),))
+                                                     ('FE', 'Februar'),
+                                                     ('MA', 'März'),
+                                                     ('AP', 'April'),
+                                                     ('MA', 'Mai'),
+                                                     ('JN', 'Juni'),
+                                                     ('JU', 'Juli'),
+                                                     ('AU', 'August'),
+                                                     ('SE', 'September'),
+                                                     ('OK', 'Oktober'),
+                                                     ('NO', 'November'),
+                                                     ('DE', 'Dezember'),))
     mieter = models.ForeignKey(Mieter, on_delete=models.CASCADE)
     betrag = models.IntegerField(default=0)
-    year  = models.ForeignKey(Year, on_delete=models.CASCADE, default=2010)
-
+    # year = models.DateField(default=datetime.now().year, blank = True)
+    year  = models.ForeignKey(Year, on_delete=models.CASCADE, default=0)
 
     def __str__(self):
-        return str(self.mieter)+' '+str(self.betrag)+' '+str(self.datum)
+        return str(self.mieter) + ' ' + str(self.betrag) + ' ' + str(self.datum)
 
 
 class MietzinseingaengeSummary(Mietzinseingaenge):
@@ -161,3 +161,5 @@ class MietzinseingaengeSummary(Mietzinseingaenge):
         proxy = True
         verbose_name = 'Mieteinnahmen'
         verbose_name_plural = 'Mieteingänge'
+
+

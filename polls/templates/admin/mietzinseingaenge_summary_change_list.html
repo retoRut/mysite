@@ -58,15 +58,11 @@
         </tr>
 
   </table>
-</div>
 
-<!-- ... -->
-
-    <div class="results">
 
     <!-- ... -->
 
-    <h2> Sales over time </h2>
+    <h2> Mieteinnahmen pro Mieter </h2>
 
     <style>
     .bar-chart {
@@ -111,10 +107,10 @@
     <div class="results">
         <div class="bar-chart">
         {% for x in summary_over_time %}
-            <div class="bar" style="height:{{x.pct}}%">
+            <div class="bar" style="height:{{x.betrag}}%">
                 <div class="bar-tooltip">
-                    {{x.total | default:0 }}<br>
-                    {{x.period | date:"d/m/Y"}}
+                    {{x.datum | date:"d/m/Y" }}<br>
+                    {{x.betrag | default:0 }}
                 </div>
             </div>
         {% endfor %}
