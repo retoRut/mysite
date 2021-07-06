@@ -52,6 +52,8 @@ class Mietzins(models.Model):
     description = models.CharField(verbose_name="Beschreibung",max_length=200)
     rent = models.DecimalField(verbose_name="Miete",max_digits=6, decimal_places=2)
     # mieter = models.ForeignKey(Mieter, on_delete=models.CASCADE, default=0)
+    start_date = models.DateField(default=datetime.now())
+    end_date = models.DateField(default=datetime.now())
     mietobject = models.ForeignKey(Mietobjekt, on_delete=models.CASCADE, default=0)
     aktiv = models.BooleanField(default=False)
     def __str__(self):
@@ -64,26 +66,18 @@ class Year(models.Model):
     def __str__(self):
         return str(self.typ)
 
-class Nebenkosten_Typ(models.Model):
-    # set headline
-    typ = models.CharField(max_length=200)
-    # a_conto = models.BooleanField(default=False)
-    a_conto =  models.CharField(max_length=10, choices=(('a', 'à conto',),
-                                         ('p', 'pauschal')))
-
-    def __str__(self):
-        return self.typ + " "+ str(self.a_conto)
-
 class Nebenkosten(models.Model):
     # mieter = models.ForeignKey(Mieter, on_delete=models.CASCADE)
-    typ = models.ForeignKey(Nebenkosten_Typ, on_delete=models.CASCADE)
+    #typ = models.ForeignKey(Nebenkosten_Typ, on_delete=models.CASCADE)
+    typ =  models.CharField(max_length=10, choices=(('Heizung', 'Heizung',),
+                                                        ('Wasser', 'Wasser'),
+                                                       ('Allg. NK', 'Allg. NK')))
     betrag = models.DecimalField(max_digits=6, decimal_places=2)
-    aktiv = models.BooleanField(default=False)
-    start_date = models.DateField(default=datetime.now())
-    end_date = models.DateField(default=datetime.now())
+    a_conto =  models.CharField(max_length=10, choices=(('a', 'à conto',),
+                                         ('p', 'pauschal')), default='a')
 
     def __str__(self):
-        return str(self.betrag)+' '+str(self.aktiv)
+        return str(self.typ)+' '+str(self.betrag)+' '+str(self.a_conto)
 
 class Mieter(models.Model):
     company = models.CharField(verbose_name="Firma", max_length=200,blank = True)
@@ -98,33 +92,34 @@ class Mieter(models.Model):
     first_name_2nd = models.CharField(verbose_name="Zweitmieter Vorname", max_length=200,blank = True)
     last_name_2nd = models.CharField(verbose_name="Zweitmieter Nachname", max_length=200, blank = True)
     activ = models.BooleanField(verbose_name="aktiv", default=False)
-    mietzins = models.ManyToManyField(Mietzins)
-    nebenkosten = models.ManyToManyField(Nebenkosten)
+    # mietzins = models.ManyToManyField(Mietzins)
+    # nebenkosten = models.ManyToManyField(Nebenkosten)
 
     def __str__(self):
         """
             used for ForeignKey dropDown
         :return:
         """
-        m_zins = ", ".join(str(m) for m in self.mietzins.all())
-        return ('{} {} {} {} ').format(
+        # m_zins = ", ".join(str(m) for m in self.mietzins.all())
+        return ('{} {} {} ').format(
                                                     self.company,
                                                     self.first_name,
-                                                    self.last_name,
-                                                    m_zins)
+                                                    self.last_name)
 
 
-class Kosten(models.Model):
-    mieter = models.ForeignKey(Mieter, on_delete=models.CASCADE)
-    miete = models.ForeignKey(Mietobjekt, on_delete=models.CASCADE)
-    nebenkosten = models.ForeignKey(Nebenkosten, on_delete=models.CASCADE)
+class Mietzinsprofil(models.Model):
+    mieter = models.ForeignKey(Mieter, on_delete=models.CASCADE,  default =0)
+    miete = models.ManyToManyField(Mietzins)
+    nebenkosten = models.ManyToManyField(Nebenkosten)
+    start_date = models.DateField(default=datetime.now())
+    end_date = models.DateField(default=datetime.now())
 
     def __str__(self):
         return str(self.mieter)+' '+str(self.miete)+' '+str(self.nebenkosten)
 
 
 class Unterhalt(models.Model):
-    mietobjekt = models.ForeignKey(Mietobjekt, on_delete=models.CASCADE)
+    mietobjekt = models.ForeignKey(Mietobjekt, on_delete=models.CASCADE, default =0)
     description = models.CharField(verbose_name="Beschreibung",max_length=200)
     betrag = models.IntegerField(default=0)
 
@@ -148,6 +143,7 @@ class Mietzinseingaenge(models.Model):
                                                      ('NO', 'November'),
                                                      ('DE', 'Dezember'),))
     mieter = models.ForeignKey(Mieter, on_delete=models.CASCADE)
+    mietzinsprofil = models.ForeignKey(Mietzinsprofil, on_delete=models.CASCADE, default =0)
     betrag = models.IntegerField(default=0)
     # year = models.DateField(default=datetime.now().year, blank = True)
     year  = models.ForeignKey(Year, on_delete=models.CASCADE, default=0)

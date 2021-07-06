@@ -11,15 +11,10 @@ from django.forms import DateTimeField, DateField
 from django.http import JsonResponse
 from django.urls import path
 
-from .models import Question, Mieter, Mietobjekt, Nebenkosten, Nebenkosten_Typ, Kosten, \
+from .models import Question, Mieter, Mietobjekt, Nebenkosten, Mietzinsprofil, \
     Mietzins, Year, Unterhalt, MietobjektSummary, MietzinseingaengeSummary, Mietzinseingaenge
 
 admin.site.register(Question)
-
-# ---- Table Nebenkosten Typ
-@admin.register(Nebenkosten_Typ)
-class Nebenkosten_TypAdmin(admin.ModelAdmin):
-    list_display = ("typ", "a_conto")
 
 # Register your models here.
 @admin.register(Mieter)
@@ -38,6 +33,7 @@ class MietobjektAdmin(admin.ModelAdmin):
 class NebenkostenAdmin(admin.ModelAdmin):
     list_display = [field.name for field in Nebenkosten._meta.fields]
 
+
 @admin.register(Mietzins)
 class MietzinsAdmin(admin.ModelAdmin):
     list_display = [field.name for field in Mietzins._meta.fields]
@@ -49,13 +45,15 @@ class UnterhaltAdmin(admin.ModelAdmin):
 
 
 # admin.site.register(Nebenkosten_Typ)
-admin.site.register(Kosten)
-# admin.site.register(Month)
+admin.site.register(Mietzinsprofil)
+class MietzinsprofilAdmin(admin.ModelAdmin):
+    list_display = [field.name for field in Mietzinsprofil._meta.fields]
+
 
 # ---- Table Mietzinseingaenge
 @admin.register(Mietzinseingaenge)
 class MietzinseingaengeAdmin(admin.ModelAdmin):
-    list_display = ("mieter", "betrag", "datum", "month")
+    list_display = [field.name for field in Mietzinseingaenge._meta.fields]
 
     #  list_filter  = ('mieter')
 
@@ -67,9 +65,7 @@ class MietzinseingaengeAdmin(admin.ModelAdmin):
     def changelist_view(self, request, extra_context=None):
         # Aggregate new subscribers per day
         chart_data = (
-            Mietzinseingaenge.objects.values("month")
-                .annotate(y=Sum("betrag"))
-                .order_by("-month")
+            Mietzinseingaenge.objects.values("month").annotate(y=Sum("betrag")).order_by("-month")
         )
         print(chart_data)
 
@@ -189,7 +185,7 @@ class MietobjektSummaryAdmin(admin.ModelAdmin):
     # date_hierarchy = 'building' # muss immer ein datum sein
 
     list_filter = ('name',)
-
+'''
     def changelist_view(self, request, extra_context=None):
         response = super().changelist_view(
             request,
@@ -215,7 +211,7 @@ class MietobjektSummaryAdmin(admin.ModelAdmin):
         return response
         # -----
 
-    '''    summary_over_time = qs.annotate( period=Trunc('mieter','betrag',
+        summary_over_time = qs.annotate( period=Trunc('mieter','betrag',
                 output_field=DateTimeField(),),
         ).values('period').annotate(total=Sum('price')).order_by('period')
 
