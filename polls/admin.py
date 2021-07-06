@@ -45,7 +45,7 @@ class UnterhaltAdmin(admin.ModelAdmin):
 
 
 # admin.site.register(Nebenkosten_Typ)
-admin.site.register(Mietzinsprofil)
+@admin.register(Mietzinsprofil)
 class MietzinsprofilAdmin(admin.ModelAdmin):
     list_display = [field.name for field in Mietzinsprofil._meta.fields]
 

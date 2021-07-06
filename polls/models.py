@@ -38,7 +38,7 @@ class Mietobjekt(models.Model):
     photo = models.ImageField(verbose_name="Bild", default=0, blank = True)
 
     def __str__(self):
-        return self.description
+        return self.name+' '+self.building
 
 class MietobjektSummary(Mietobjekt):
     class Meta:
@@ -50,7 +50,7 @@ class MietobjektSummary(Mietobjekt):
 class Mietzins(models.Model):
     #mietobjekt = models.ForeignKey(Mietobjekt, on_delete=models.CASCADE)
     description = models.CharField(verbose_name="Beschreibung",max_length=200)
-    rent = models.DecimalField(verbose_name="Miete",max_digits=6, decimal_places=2)
+    rent = models.DecimalField(verbose_name="Mietpreis (SFR)",max_digits=6, decimal_places=2)
     # mieter = models.ForeignKey(Mieter, on_delete=models.CASCADE, default=0)
     start_date = models.DateField(default=datetime.now())
     end_date = models.DateField(default=datetime.now())
@@ -79,6 +79,7 @@ class Nebenkosten(models.Model):
     def __str__(self):
         return str(self.typ)+' '+str(self.betrag)+' '+str(self.a_conto)
 
+
 class Mieter(models.Model):
     company = models.CharField(verbose_name="Firma", max_length=200,blank = True)
     first_name = models.CharField(verbose_name="Vorname",max_length=200)
@@ -92,8 +93,6 @@ class Mieter(models.Model):
     first_name_2nd = models.CharField(verbose_name="Zweitmieter Vorname", max_length=200,blank = True)
     last_name_2nd = models.CharField(verbose_name="Zweitmieter Nachname", max_length=200, blank = True)
     activ = models.BooleanField(verbose_name="aktiv", default=False)
-    # mietzins = models.ManyToManyField(Mietzins)
-    # nebenkosten = models.ManyToManyField(Nebenkosten)
 
     def __str__(self):
         """
@@ -115,16 +114,17 @@ class Mietzinsprofil(models.Model):
     end_date = models.DateField(default=datetime.now())
 
     def __str__(self):
-        return str(self.mieter)+' '+str(self.miete)+' '+str(self.nebenkosten)
+        return str(self.mieter)+' '+str(self.miete.all().values("rent"))+' '+str(self.nebenkosten.all())
 
 
 class Unterhalt(models.Model):
+    project = models.CharField(verbose_name="Projekt", max_length=200)
     mietobjekt = models.ForeignKey(Mietobjekt, on_delete=models.CASCADE, default =0)
-    description = models.CharField(verbose_name="Beschreibung",max_length=200)
-    betrag = models.IntegerField(default=0)
+    description = models.TextField(verbose_name="Beschreibung", max_length=1024 * 2)
+    betrag = models.DecimalField(verbose_name="Investition (SFR)",max_digits=10, decimal_places=2)
 
     def __str__(self):
-        return str(self.mietobjekt)+' '+str(self.description)+' '+str(self.betrag)
+        return str(self.mietobjekt)+' '+str(self.project)+' '+str(self.betrag)
 
 
 class Mietzinseingaenge(models.Model):
