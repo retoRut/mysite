@@ -2,6 +2,7 @@ from datetime import datetime, date
 
 from django.contrib import admin
 from django.db import models
+from django.db.models import Sum
 from django.utils import timezone
 # Create your models here.
 
@@ -26,7 +27,7 @@ class Choice(models.Model):
 
 class Mietobjekt(models.Model):
     name = description = models.CharField(verbose_name="Objektname",max_length=200, default=0)
-    building =  models.CharField(default = 0, max_length=10, choices=(('H1', 'H1',),
+    building = models.CharField(default = 0, max_length=10, choices=(('H1', 'H1',),
                                                                         ('H3', 'H3'),
                                                                       ('H3A', 'H3A'),
                                                                       ('H5', 'H5'),
@@ -67,8 +68,6 @@ class Year(models.Model):
         return str(self.typ)
 
 class Nebenkosten(models.Model):
-    # mieter = models.ForeignKey(Mieter, on_delete=models.CASCADE)
-    #typ = models.ForeignKey(Nebenkosten_Typ, on_delete=models.CASCADE)
     typ =  models.CharField(max_length=10, choices=(('Heizung', 'Heizung',),
                                                         ('Wasser', 'Wasser'),
                                                        ('Allg. NK', 'Allg. NK')))
@@ -84,6 +83,7 @@ class Mieter(models.Model):
     company = models.CharField(verbose_name="Firma", max_length=200,blank = True)
     first_name = models.CharField(verbose_name="Vorname",max_length=200)
     last_name = models.CharField(verbose_name="Nachname", max_length=200)
+    email = models.EmailField(verbose_name="Email",blank = True)
     phone_number = models.CharField(verbose_name="Telefonnummer", max_length=200)
     conto_number = models.CharField(verbose_name="IBAN Nummer", max_length=200, default=0)
     address = models.CharField(verbose_name="Strasse", max_length=200, default=0)
@@ -114,17 +114,20 @@ class Mietzinsprofil(models.Model):
     end_date = models.DateField(default=datetime.now())
 
     def __str__(self):
-        return str(self.mieter)+' '+str(self.miete.all().values("rent"))+' '+str(self.nebenkosten.all())
+        # total Miete und Nebenkosten
+        total = self.miete.aggregate(total_score=Sum('rent'))['total_score'] + \
+                self.nebenkosten.aggregate(total_score=Sum('betrag'))['total_score']
+        return str(self.mieter)+' SFR '+str(total)
 
 
 class Unterhalt(models.Model):
     project = models.CharField(verbose_name="Projekt", max_length=200)
-    mietobjekt = models.ForeignKey(Mietobjekt, on_delete=models.CASCADE, default =0)
+    mietobject = models.ForeignKey(Mietobjekt, on_delete=models.CASCADE, default =0)
     description = models.TextField(verbose_name="Beschreibung", max_length=1024 * 2)
     betrag = models.DecimalField(verbose_name="Investition (SFR)",max_digits=10, decimal_places=2)
 
     def __str__(self):
-        return str(self.mietobjekt)+' '+str(self.project)+' '+str(self.betrag)
+        return str(self.mietobject) + ' ' + str(self.project) + ' ' + str(self.betrag)
 
 
 class Mietzinseingaenge(models.Model):

@@ -27,8 +27,9 @@ admin.site.register(Year)
 @admin.register(Mietobjekt)
 class MietobjektAdmin(admin.ModelAdmin):
     list_display = [field.name for field in Mietobjekt._meta.fields]
-# admin.site.register(Nebenkosten)
-# ---- Table Mietzinseingaenge
+
+
+# ---- Table Nebenkosten
 @admin.register(Nebenkosten)
 class NebenkostenAdmin(admin.ModelAdmin):
     list_display = [field.name for field in Nebenkosten._meta.fields]
@@ -43,6 +44,31 @@ class MietzinsAdmin(admin.ModelAdmin):
 class UnterhaltAdmin(admin.ModelAdmin):
     list_display = [field.name for field in Unterhalt._meta.fields]
 
+    def changelist_view(self, request, extra_context=None):
+        # Aggregate new subscribers per day
+        invest_data = (
+            #Mietobjekt.objects.filter()
+            Unterhalt.objects.values("mietobject__name").annotate(y=Sum("betrag")).order_by("-mietobject")
+        )
+        miete_data = (
+            #Mietobjekt.objects.filter()
+            Mietzins.objects.values("mietobject__name").annotate(y=Sum("rent")).order_by("-mietobject")
+        )
+
+        print('Unterhalt chart:'+ str(invest_data))
+        print('mietzins chart:'+ str(miete_data))
+
+        # Serialize and attach the chart data to the template context
+        as_json_invest = json.dumps(list(invest_data), cls=DjangoJSONEncoder)
+        as_json_miete = json.dumps(list(miete_data), cls=DjangoJSONEncoder)
+        extra_context = extra_context or {"invest_data": as_json_invest, "miete_data": as_json_miete}
+
+        # Serialize and attach the chart data to the template context
+  #      as_json = json.dumps(list(invest_data), cls=DjangoJSONEncoder)
+  #      extra_context = extra_context or {"miete_data": as_json}
+
+        # Call the superclass changelist_view to render the page
+        return super().changelist_view(request, extra_context=extra_context)
 
 # admin.site.register(Nebenkosten_Typ)
 @admin.register(Mietzinsprofil)
@@ -67,7 +93,7 @@ class MietzinseingaengeAdmin(admin.ModelAdmin):
         chart_data = (
             Mietzinseingaenge.objects.values("month").annotate(y=Sum("betrag")).order_by("-month")
         )
-        print(chart_data)
+        print('Mieteinnahmen chart:'+ str(chart_data))
 
         # Serialize and attach the chart data to the template context
         as_json = json.dumps(list(chart_data), cls=DjangoJSONEncoder)
